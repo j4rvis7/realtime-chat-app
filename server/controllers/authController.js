@@ -28,10 +28,15 @@ const login = (req, res, next) => {
 
     req.login(user, async (loginErr) => {
       if (loginErr) return next(loginErr);
-      // Mark online
-      await User.findByIdAndUpdate(user._id, { isOnline: true });
-      const { salt: _, hash: __, ...userData } = user.toObject();
-      return res.json({ success: true, message: 'Logged in successfully.', user: userData });
+      
+      try {
+        // Mark online
+        await User.findByIdAndUpdate(user._id, { isOnline: true });
+        const { salt: _, hash: __, ...userData } = user.toObject();
+        return res.json({ success: true, message: 'Logged in successfully.', user: userData });
+      } catch (dbErr) {
+        return next(dbErr);
+      }
     });
   })(req, res, next);
 };
@@ -41,10 +46,18 @@ const logout = asyncWrapper(async (req, res, next) => {
   if (req.user) {
     await User.findByIdAndUpdate(req.user._id, { isOnline: false, lastSeen: new Date() });
   }
+  
   req.logout((err) => {
     if (err) return next(err);
+    
     req.session.destroy(() => {
-      res.clearCookie('connect.sid');
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      });
+      
       return res.json({ success: true, message: 'Logged out successfully.' });
     });
   });
