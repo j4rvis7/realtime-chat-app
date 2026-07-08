@@ -19,7 +19,7 @@ const messageRoutes = require('./routes/messageRoutes');
 connectDB();
 
 const app = express();
-
+app.set('trust proxy', 1);
 // ─── CORS ────────────────────────────────────────────────────────────────────
 app.use(
   cors({

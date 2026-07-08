@@ -6,7 +6,7 @@ const { registerSchema, loginSchema, validate } = require('../validators/schemas
 
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
-router.post('/logout', isAuthenticated, logout);
+router.post('/logout', logout);
 router.get('/me', isAuthenticated, getMe);
 
 module.exports = router;
